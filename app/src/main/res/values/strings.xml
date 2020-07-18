@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Any Chat</string>
+    <string name="text">Now chat with any WhatsApp number without saving it in to your contacts.
+        \n\n-> Enter country code ( without \' + \' ) in CC.
+        \n\t(91 is entered as default country code for India)
+        \n\n-> Enter Mobile Number (without country code) in Mobile Number field. </string>
+</resources>
