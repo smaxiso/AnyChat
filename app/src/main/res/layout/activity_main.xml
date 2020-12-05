@@ -15,7 +15,7 @@
         android:hint="Mobile Number"
         android:imeOptions="actionDone"
         android:inputType="phone"
-        android:maxLength="10"
+        android:maxLength="15"
         android:textColor="@color/black"
         app:layout_constraintBottom_toTopOf="@+id/chat"
         app:layout_constraintEnd_toEndOf="parent"
@@ -32,7 +32,7 @@
         android:hint="CC"
         android:imeOptions="actionNext"
         android:inputType="number"
-        android:maxLength="2"
+        android:maxLength="3"
         android:text="91"
         android:textColor="@color/black"
         app:layout_constraintBottom_toTopOf="@+id/chat"
@@ -130,4 +130,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/chat"
         app:layout_constraintVertical_bias="0.846" />
+
+    <TextView
+        android:id="@+id/nutext"
+        android:layout_width="wrap_content"
+        android:layout_height="47dp"
+        android:gravity="center_horizontal"
+        android:text=""
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textSize="30dp"
+        app:layout_constraintBottom_toTopOf="@+id/contact"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chat"
+        app:layout_constraintVertical_bias="0.195" />
 </androidx.constraintlayout.widget.ConstraintLayout>
