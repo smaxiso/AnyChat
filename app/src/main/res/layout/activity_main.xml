@@ -33,7 +33,7 @@
         android:imeOptions="actionNext"
         android:inputType="number"
         android:maxLength="3"
-        android:text="91"
+        android:text="+91"
         android:textColor="@color/black"
         app:layout_constraintBottom_toTopOf="@+id/chat"
         app:layout_constraintEnd_toStartOf="@+id/phone"
@@ -79,22 +79,6 @@
         app:layout_constraintVertical_bias="0.169"
         android:gravity="center_horizontal"
         tools:ignore="RtlCompat" />
-
-    <TextView
-        android:id="@+id/plus"
-        android:layout_width="wrap_content"
-        android:layout_height="47dp"
-        android:gravity="center_horizontal"
-        android:text="+"
-        android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="30dp"
-        app:layout_constraintBottom_toTopOf="@+id/chat"
-        app:layout_constraintEnd_toStartOf="@+id/cc"
-        app:layout_constraintHorizontal_bias="0.666"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/about"
-        app:layout_constraintVertical_bias="0.509" />
 
     <TextView
         android:id="@+id/welcome"
