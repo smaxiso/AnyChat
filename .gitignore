@@ -1,14 +1,56 @@
+# Android Studio
 *.iml
-.gradle
+/.idea
 /local.properties
-/.idea/caches
-/.idea/libraries
+/.idea/caches/
+/.idea/libraries/
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/captures/
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+
+# Gradle
+.gradle/
+/build/
+.externalNativeBuild/
+
+# Android build artifacts
+build/
+
+# NDK
+.cxx/
+
+# IntelliJ
+*.iws
+*.iws.xml
+*.ipr
+*.ids
+*.fs
+*.d
+*.bak
+*.apk
+*.ap_
+
+# Proguard
+proguard/
+
+# Crashlytics
+crashlytics.properties
+
+# Keystore files
+*.jks
+
+# Fabric
+fabric.properties
+
+# Google Services (e.g., google-services.json)
+google-services.json
+
+# Gradle Wrapper
+gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/gradle-wrapper.properties
+
+# Android Studio Navigation editor metadata
+.navigation/

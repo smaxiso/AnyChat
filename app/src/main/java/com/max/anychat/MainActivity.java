@@ -1,158 +1,192 @@
 package com.max.anychat;
-
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.util.Log;
 import android.net.Uri;
-import android.os.Bundle;
-import android.view.MotionEvent;
+
+import android.util.Pair;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+import android.os.Bundle;
+import android.widget.Toast;
 import android.widget.Button;
+import android.content.Intent;
+import android.content.Context;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import android.view.inputmethod.InputMethodManager;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Declare instance variables to retain state
+    private String lastEnteredPhoneNumber = "";
+    private String lastEnteredCountryCode = "";
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ConstraintLayout main = (ConstraintLayout)findViewById(R.id.main);
-        Button chat = (Button)findViewById(R.id.chat);
-        Button contact = (Button)findViewById(R.id.contact);
-        final EditText phone = (EditText)findViewById(R.id.phone);
-        final EditText cc = (EditText)findViewById(R.id.cc);
-        cc.setEnabled(false);   //currently can't edit country code, India is default.
-        final TextView numtext = (TextView)findViewById(R.id.nutext);
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        String pasteData = "";
+        ConstraintLayout main = findViewById(R.id.main);
+        Button chat = findViewById(R.id.chat);
+        Button contact = findViewById(R.id.contact);
+        EditText phone = findViewById(R.id.phone);
+        EditText cc = findViewById(R.id.cc);
+        TextView numtext = findViewById(R.id.nutext);
 
-
-        //Hide keyboard when touched on the screen
-        main.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                hideKeyboard(v);
-                return false;
-            }
-        });
-
-        //Chat button click function
-        chat.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                String  temp = phone.getText().toString();
-                temp = temp.substring(temp.length()-10);
-                if(cc.getText().toString().length()==0)
-                {
-                    cc.setError("Enter valid country code !!");
-                }
-                else if (temp.length()!=10)
-                {
-                    phone.setError("Mobile no. length should be 10");
-                    numtext.setText("");
-                }
-                else
-                {
-                    boolean flag = check(temp);   //check phone no.'s correct format
-                    if (flag)
-                    {
-                        //numtext.setText("+91 - " + phone.getText().toString().substring(0,5) + " - " + phone.getText().toString().substring(5,10));
-                        numtext.setText("+91 - " + temp.substring(0,5) + " - " + temp.substring(5,10));
-                        phone.setText(temp);
-                        String link ="https://wa.me/91" + temp;
-                        Uri uri = Uri.parse(link); // missing 'http://' will cause crashed
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(intent);
-                    }
-                    else
-                    {
-                        //Toast.makeText(MainActivity.this, "Invalid Mobile Number !", Toast.LENGTH_SHORT).show();
-                        alert();
-                        phone.setText("");
-                        numtext.setText("");
-                    }
-                }
-            }
-        });
-
-        //Contact Button click function
-        contact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Uri uri = Uri.parse("https://smaxiso.github.io/contact.html"); // missing 'http://' will cause crashed
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intent);
-            }
-        });
-
-    }
-
-    //function to check if valid number is entered or not
-    public boolean check(String s)
-    {
-        //s = s.substring(s.length() - 10);
-        if (s.charAt(0)=='9' || s.charAt(0)=='8' || s.charAt(0)=='7' || s.charAt(0)=='6')
-        {
-            return true;
-        }
-        else
+        // Lambda expressions for touch and click listeners
+        main.setOnTouchListener((v, event) -> {
+            hideKeyboard(v);
             return false;
+        });
+
+        main.setOnClickListener(this::hideKeyboard);
+
+        chat.setOnClickListener(v -> handleChatButtonClick(phone, cc, numtext));
+
+        contact.setOnClickListener(v -> openContactPage());
+
     }
 
-    //function to hide keyboard
-    void hideKeyboard(View view)
-    {
+    private void handleChatButtonClick(EditText phone, EditText cc, TextView numtext) {
+        String enteredPhoneNumber = phone.getText().toString();
+        String enteredCountryCode = cc.getText().toString();
+        Pair<String, String> processedValues;
+        if (lastEnteredPhoneNumber.length()>0 && enteredPhoneNumber.length()<1) {
+            processedValues = processPhoneNumber(lastEnteredCountryCode, lastEnteredPhoneNumber, phone, cc);
+        }
+        else {
+            processedValues = processPhoneNumber(enteredCountryCode, enteredPhoneNumber, phone, cc);
+        }
+        enteredCountryCode = processedValues.first;
+        enteredPhoneNumber = processedValues.second;
+
+        boolean isValidCountryCode = isValidCountryCode(enteredCountryCode);
+        boolean isValidPhoneNumber = isValidPhoneNumber(enteredPhoneNumber);
+
+        if (isValidPhoneNumber && isValidCountryCode) {
+            String formattedPhoneNumber = String.format("%s - %s - %s", enteredCountryCode, enteredPhoneNumber.substring(0, 5), enteredPhoneNumber.substring(5, 10));
+            numtext.setText(formattedPhoneNumber);
+            phone.setText(enteredPhoneNumber);
+
+            // Check if WhatsApp is installed
+            if (isWhatsAppInstalled()) {
+                // Use Intent to open WhatsApp
+                openWhatsApp(enteredCountryCode, enteredPhoneNumber);
+            } else {
+                // WhatsApp not installed, open web version
+                openWhatsAppWeb(enteredCountryCode, enteredPhoneNumber);
+            }
+            // Store the entered values for the next click
+            lastEnteredCountryCode = enteredCountryCode;
+            lastEnteredPhoneNumber = enteredPhoneNumber;
+        } else {
+            phone.setError("Invalid Mobile Number!");
+            alert();
+            phone.setText("");
+            numtext.setText("");
+        }
+    }
+
+    private Pair<String, String> processPhoneNumber(String enteredCountryCode, String phoneNumber, EditText phone, EditText cc) {
+        // Remove spaces and non-numeric characters
+        phoneNumber = phoneNumber.replaceAll("\\D", "");
+
+        // Extract country code (first two digits) if applicable
+        String countryCode = "";
+        String mobileNumber = "";
+
+        if (phoneNumber.length() >= 10) {
+            mobileNumber = phoneNumber.substring(phoneNumber.length() - 10);
+            if (phoneNumber.length() >= 12) {
+                countryCode = phoneNumber.substring(0, 2);
+            } else if (phoneNumber.length() == 11) {
+                countryCode = phoneNumber.substring(0, 1);
+            }
+        }
+        if(countryCode.length()<1)
+            countryCode = enteredCountryCode;
+
+        // Set the country code to the cc EditText
+        cc.setText(countryCode);
+        cc.setSelection(countryCode.length());
+
+        // Set the modified phone number back to the EditText
+        phone.setText(mobileNumber);
+        phone.setSelection(mobileNumber.length());
+
+        return new Pair<>(countryCode, mobileNumber);
+    }
+
+    private boolean isWhatsAppInstalled() {
+        PackageManager packageManager = getPackageManager();
+        try {
+            packageManager.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private void openWhatsApp(String countryCode, String phoneNumber) {
+        String whatsappLink = "https://wa.me/" + countryCode + phoneNumber;
+        Uri whatsappUri = Uri.parse(whatsappLink);
+        Intent whatsappIntent = new Intent(Intent.ACTION_VIEW, whatsappUri);
+        startActivity(whatsappIntent);
+    }
+
+    private void openWhatsAppWeb(String countryCode, String phoneNumber) {
+        String whatsappWebLink = "https://web.whatsapp.com/send?phone=" + countryCode + phoneNumber;
+        Uri whatsappWebUri = Uri.parse(whatsappWebLink);
+        Intent whatsappWebIntent = new Intent(Intent.ACTION_VIEW, whatsappWebUri);
+        startActivity(whatsappWebIntent);
+    }
+
+    private void openContactPage() {
+        Uri uri = Uri.parse(getString(R.string.contact_url));
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
+    }
+
+    private boolean isValidCountryCode(String countryCode){
+        return countryCode.length() > 0;
+    }
+
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        String numericPhoneNumber = phoneNumber.replaceAll("[^0-9]", "");
+        int desiredLength = 10;
+        return numericPhoneNumber.length() == desiredLength;
+    }
+
+    void hideKeyboard(View view) {
         InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         in.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
-    //exit warning on BackPress
-    public void onBackPressed(){
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("Confirm Exit??");
-        alertDialogBuilder.setMessage("Are you sure want to exit the app?");
-        alertDialogBuilder.setCancelable(true);
-        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(MainActivity.this, "Exit successfull !", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        });
-        alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(MainActivity.this, "Cancel successfull !", Toast.LENGTH_SHORT).show();
-            }
-        });
-        AlertDialog alertDialog=alertDialogBuilder.create();
-        alertDialog.show();
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Exit??")
+                .setMessage("Are you sure want to exit the app?")
+                .setCancelable(true)
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    Toast.makeText(MainActivity.this, "Exit successful!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .setNegativeButton("No", (dialog, which) -> Toast.makeText(MainActivity.this, "Cancel successful!", Toast.LENGTH_SHORT).show())
+                .create()
+                .show();
     }
 
-    //show alert message prompting to enter the correct mobile number format
-    public void alert()
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Please enter valid Mobile Number !!");
-        builder.setMessage("Mobile telephone numbering in India start with 9, 8, 7 or 6 which is based on GSM, WCDMA and LTE technologies.");
-        builder.setCancelable(true);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
-        {
-            public void onClick(DialogInterface dialog, int id) {}
-        });
-        AlertDialog alert = builder.create();
-        alert.show();
+    public void alert() {
+        new AlertDialog.Builder(this)
+                .setTitle("Please enter a valid Mobile Number!!")
+                .setCancelable(true)
+                .setPositiveButton("OK", (dialog, id) -> {})
+                .create()
+                .show();
     }
-
 }
