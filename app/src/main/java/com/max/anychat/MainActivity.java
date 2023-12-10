@@ -1,7 +1,9 @@
 package com.max.anychat;
-import android.util.Log;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.net.Uri;
-
+import android.os.Build;
 import android.util.Pair;
 import android.view.View;
 import android.os.Bundle;
@@ -13,10 +15,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.inputmethod.InputMethodManager;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -73,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
             phone.setText(enteredPhoneNumber);
 
             // Check if WhatsApp is installed
+            requestNotificationPermission();
             if (isWhatsAppInstalled()) {
                 // Use Intent to open WhatsApp
                 openWhatsApp(enteredCountryCode, enteredPhoneNumber);
@@ -88,6 +95,18 @@ public class MainActivity extends AppCompatActivity {
             alert();
             phone.setText("");
             numtext.setText("");
+        }
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // Check if the app has the notification permission
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if (notificationManager != null && !notificationManager.isNotificationPolicyAccessGranted()) {
+                // If not, request the user to grant notification access
+                Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                startActivity(intent);
+            }
         }
     }
 
@@ -134,6 +153,11 @@ public class MainActivity extends AppCompatActivity {
     private void openWhatsApp(String countryCode, String phoneNumber) {
         String whatsappLink = "https://wa.me/" + countryCode + phoneNumber;
         Uri whatsappUri = Uri.parse(whatsappLink);
+
+        // Create a notification
+        sendNotification("Starting WhatsApp chat with " + countryCode + "-" + phoneNumber + " in WhatsApp app");
+
+        // Open WhatsApp using Intent
         Intent whatsappIntent = new Intent(Intent.ACTION_VIEW, whatsappUri);
         startActivity(whatsappIntent);
     }
@@ -141,9 +165,47 @@ public class MainActivity extends AppCompatActivity {
     private void openWhatsAppWeb(String countryCode, String phoneNumber) {
         String whatsappWebLink = "https://web.whatsapp.com/send?phone=" + countryCode + phoneNumber;
         Uri whatsappWebUri = Uri.parse(whatsappWebLink);
+
+        // Create a notification
+        sendNotification("Starting WhatsApp chat with " + countryCode + "-" + phoneNumber + " in WhatsApp Web");
+
+        // Open WhatsApp web version using Intent
         Intent whatsappWebIntent = new Intent(Intent.ACTION_VIEW, whatsappWebUri);
         startActivity(whatsappWebIntent);
     }
+
+    // Create a Notification Channel
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Default";
+            String description = "In this channel notifications are pushed for searched numbers in the app.";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("channel_id_default", name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    // Show Notification
+    private void sendNotification(String contentText) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            createNotificationChannel();
+        }
+        String contentTitle = "WhatsApp Chat Started";
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "channel_id_default")
+                .setSmallIcon(R.drawable.notification_icon)
+                .setContentTitle(contentTitle)
+                .setContentText(contentText)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(1, builder.build());
+    }
+
+
 
     private void openContactPage() {
         Uri uri = Uri.parse(getString(R.string.contact_url));

@@ -6,8 +6,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="@drawable/gradient_background">
 
     <!-- Welcome TextView -->
     <TextView
@@ -21,11 +21,11 @@
         android:text="@string/welcome"
         android:textStyle="bold"
         android:textColor="@color/black"
+        android:textSize="24sp"
         android:paddingStart="@dimen/standard_padding"
         android:paddingEnd="@dimen/standard_padding"
         android:paddingTop="@dimen/standard_padding"
         android:paddingBottom="@dimen/standard_padding"
-        android:textSize="24sp"
         app:layout_constraintBottom_toTopOf="@+id/about"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,13 +40,14 @@
         android:maxLines="10"
         android:text="@string/text"
         android:textAlignment="textStart"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:background="@drawable/rounded_corner_about_bg"
         android:paddingStart="@dimen/standard_padding"
         android:paddingEnd="@dimen/standard_padding"
         android:paddingTop="@dimen/standard_padding"
         android:paddingBottom="@dimen/standard_padding"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        android:textStyle="bold"
         android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginEnd="@dimen/standard_margin"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -56,15 +57,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.15"
         android:gravity="start|center_horizontal"
-        android:padding="@dimen/standard_padding"
         android:layout_marginHorizontal="@dimen/standard_margin"
         android:layout_marginVertical="@dimen/standard_margin"
         android:backgroundTint="@color/teal_700"
         android:elevation="4dp"
         android:outlineSpotShadowColor="@color/teal_700"
         android:outlineAmbientShadowColor="@color/teal_700"
-        tools:ignore="RtlCompat,UnusedAttribute"
-        android:background="@drawable/rounded_corner_about_bg"/>
+        tools:ignore="RtlCompat" />
 
 
     <!-- Country Code EditText -->
@@ -121,7 +120,7 @@
         android:paddingBottom="@dimen/standard_padding"
         android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginEnd="@dimen/standard_margin"
-        android:textColor="@color/grey"
+        android:textColor="@color/black"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/contact"
